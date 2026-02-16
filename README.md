@@ -1,9 +1,12 @@
 <h1 align="center">SteamOS USB Wake</h1>
 
-## About
-
 > [!NOTE]
 > *This tool and its author are not affiliated with Valve in any way.*
+
+> [!TIP]
+> **Please do not request install help in this repo!**
+
+## About
 
 This script installs and activates a service that allows USB devices on any USB root hub to wake SteamOS from sleep.
 
@@ -12,9 +15,6 @@ This script installs and activates a service that allows USB devices on any USB 
 However; given the Steam Machine and Steam Decks nature, and OSs in general, these DIY PCs cannot be woken by most controllers.
 
 To get around this, this service detects changes on the USB root hubs (USB device controllers) and if a change is detected (like a controller waking up (state change), or randomly appearing on the bus (bluetooth)) it triggers the wake command in the OS (like you pushed the power button.).
-
-> [!TIP]
-> **Please do not request install help in this repo!**
 
 -----
 
