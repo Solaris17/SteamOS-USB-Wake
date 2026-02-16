@@ -27,11 +27,11 @@ It is worth mentioning that this service does not work on pure built in BT recei
 A USB of some kind must be triggered, such as a dock or dongle.
 
 
-| Device                | Model      | Connection Type           |
-|-----------------------|------------|---------------------------|
-| 8BitDo Controller     | Ultimate 2 | Dongle & Base             |
-| Xbox One Controller   | 1708       | Cable Unplug & Plug event |
-| Logitech KB/M combo   | K400 Plus  | Included 2.4ghz Dongle    |
+| Device                | Model      | Connection Type           | Wake On             |
+|-----------------------|------------|---------------------------|---------------------|
+| 8BitDo Controller     | Ultimate 2 | Dongle & Base             | Controller Wake     |
+| Xbox One Controller   | 1708       | Cable                     | Unplug & Plug event |
+| Logitech KB/M combo   | K400 Plus  | Included 2.4ghz Dongle    | Button Press        |
 
 
 -----
