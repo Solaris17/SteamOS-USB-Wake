@@ -22,7 +22,7 @@ To get around this, this service detects changes on the USB root hubs (USB devic
 
 The following is a small subset of tested controllers and devices.
 
-It is worth mentioning that this service does not work on pure built in BT receivers.
+It is worth mentioning that this service does not work on pure built in BT receivers (like combo wifi/bt cards).
 
 A USB of some kind must be triggered, such as a dock or dongle.
 
@@ -31,7 +31,7 @@ A USB of some kind must be triggered, such as a dock or dongle.
 |-----------------------|------------|---------------------------|---------------------|
 | 8BitDo Controller     | Ultimate 2 | Dongle & Base             | Controller Wake     |
 | Xbox One Controller   | 1708       | Cable                     | Unplug & Plug event |
-| Logitech KB/M combo   | K400 Plus  | Included 2.4ghz Dongle    | Button Press        |
+| Logitech KB/M Combo   | K400 Plus  | Included 2.4ghz Dongle    | Button Press        |
 
 
 -----
