@@ -7,7 +7,7 @@
 
 This script installs and activates a service that allows USB devices on any USB root hub to wake SteamOS from sleep.
 
-![SteamOS](https://help.steampowered.com/en/faqs/view/65B4-2AA3-5F37-4227) is installed on many DIY PCs by enthusiasts to make faux steam machines.
+[SteamOS](https://help.steampowered.com/en/faqs/view/65B4-2AA3-5F37-4227) is installed on many DIY PCs by enthusiasts to make faux steam machines.
 
 However; given the Steam Machine and Steam Decks nature, and OSs in general, these DIY PCs cannot be woken by most controllers.
 
