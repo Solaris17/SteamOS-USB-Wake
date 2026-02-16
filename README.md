@@ -18,6 +18,22 @@ To get around this, this service detects changes on the USB root hubs (USB devic
 
 -----
 
+## Works with
+
+The following is a small subset of tested controllers and devices.
+
+It is worth mentioning that this service does not work on pure built in BT receivers.
+
+A USB of some kind must be triggered, such as a dock or dongle.
+
+| Device                | Model      | Connection Type           |
+|----------------------------------------------------------------|
+| 8BitDo Controller     | Ultimate 2 | Dongle & Base             |
+| Xbox One Controller   | 1708       | Cable Unplug & Plug event |
+| Logitech KB/M combo   | K400 Plus  | Included 2.4ghz Dongle    |
+
+-----
+
 ## How to install
 
 - Switch SteamOS to Desktop mode.
