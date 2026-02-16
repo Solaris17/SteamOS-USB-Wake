@@ -28,7 +28,7 @@ A USB of some kind must be triggered, such as a dock or dongle.
 
 
 | Device                | Model      | Connection Type           |
-|----------------------------------------------------------------|
+| -------------------------------------------------------------- |
 | 8BitDo Controller     | Ultimate 2 | Dongle & Base             |
 | Xbox One Controller   | 1708       | Cable Unplug & Plug event |
 | Logitech KB/M combo   | K400 Plus  | Included 2.4ghz Dongle    |
