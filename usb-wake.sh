@@ -6,18 +6,16 @@ SERVICE_NAME="usb_wake.service"
 # /usr is not writable on SteamOS and can be replaced during image update, so lets put the service in /etc/systemd/system instead since it persists
 SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
 
-echo
-log() { echo "[usb-wake-setup] $*"; }
-echo
+log() { printf '\033[1;34m[usb-wake-setup]\033[0m %s\n' "$*"; }
 
-echo
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
+    echo
     echo "ERROR: missing required command: $1" >&2
+    echo
     exit 1
   }
 }
-echo
 
 need_cmd systemctl
 need_cmd sh
@@ -36,29 +34,32 @@ if [[ -n "${READONLY_TOOL}" ]]; then
   fi
 fi
 
-echo
 cleanup() {
   # If we disabled readonly, put it back
   if [[ "${readonly_was_enabled}" == "true" && -n "${READONLY_TOOL}" ]]; then
+    echo
     log "Re-enabling SteamOS readonly..."
+    echo
     "${READONLY_TOOL}" enable || true
   fi
 }
 trap cleanup EXIT
-echo
 
-echo
 if [[ "${readonly_was_enabled}" == "true" && -n "${READONLY_TOOL}" ]]; then
+  echo
   log "SteamOS readonly is ENABLED; disabling temporarily..."
+  echo
   "${READONLY_TOOL}" disable
 else
 echo
   log "SteamOS readonly appears disabled (or steamos-readonly not present)."
-fi
 echo
+fi
 
 # We enable all root hubs to do it because some USB devices like controllers have different id values based on state (like sleep) so udevs are ineffective
+echo
 log "Writing ${SERVICE_PATH}..."
+echo
 cat > "${SERVICE_PATH}" <<'EOF'
 [Unit]
 Description=Enables wakeup for all USB root hubs
