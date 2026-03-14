@@ -47,14 +47,6 @@ Now you must make the script executable:
 chmod a+x usb-wake.sh
 ```
 
-Now simply navigate to the folder the script belongs to and execute it.
-
-```bash
-sudo ./usb-wake.sh
-```
-
-The script will output its status as it completes.
-
 > [!TIP]
 > **A sudo password must be set and it is not be default!**
 
@@ -63,15 +55,23 @@ SteamOS does not ship with a root password, so one must be set before you can ex
 > [!NOTE]
 > *It is assumed that you are using the default SteamOS user "deck", if not change command accordingly.*
 
-First set the password for the account, make this something memorable.
+First set the password for the account, make this something memorable or copy and paste the following.
 
 ```bash
 yes "USBWake!" | passwd deck
 ```
 
-Now execute the script install process.
+Now simply navigate to the folder the script belongs to and execute it.
 
-After the script runs and installs the service you can remove the password using the following:
+```bash
+sudo ./usb-wake.sh
+```
+
+The script will output its status as it completes.
+
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/install.png?raw=true)
+
+After the script runs and installs the service you remove the password using the following:
 
 ```bash
 echo "USBWake!" | sudo -S -k passwd -d deck
@@ -82,56 +82,44 @@ After the machine goes to sleep simply wake the controller.
 
 -----
 
+## Features
+
+- Installs service that runs once each boot enabling currently connected usb hubs to wake the system
+- Automatically backs up the current USB hub configuration for restoration later
+- Includes restoration feature to restore backups
+- Includes uninstall feature to remove the service
+
+-----
+
 ## Utility
 
-During script execution the various stages will print out.
+The script itself has several flags to choose from including simply running it.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/image.png?raw=true)
-
-
-## Removal
-
-If at any point you would like to uninstall the change do the following:
-
-Configure a sudo password.
-
-Then stop the service:
+Use ```--help``` to open the menu.
 
 ```bash
-sudo systemctl stop usb_wake.service
+Usage:
+  /home/tech/Downloads/usb-wake.sh
+  /home/tech/Downloads/usb-wake.sh --restore
+  /home/tech/Downloads/usb-wake.sh --uninstall
 ```
 
-Now disable the service from boot:
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/help.png?raw=true)
 
-```bash
-sudo systemctl disable usb_wake.service
-```
 
-Remove the service file:
+Additionally; user inputs are safeguarded for mistypes, preventing accidental usage.
 
-```bash
-sudo rm /etc/systemd/system/usb_wake.service
-```
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/invalid.png?raw=true)
 
-Then reboot the system or reload systemd:
+## Restoring
 
-```bash
-sudo systemctl daemon-reload
-```
+Using the ```--restore``` flag allows you to temporarily restore USB hub settings from an automatic backup.
 
-> [!TIP]
-> **If you get errors during file deletion.**
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/restore.png?raw=true)
 
-You likely have SteamOS readonlyFS enabled which is the default.
+## Uninstalling
 
-Simply disable it, then re-enable it once removal is complete.
+Using the ```--uninstall``` flag allows you to remove the service and optionally restore from a configuration backup.
 
-```bash
-sudo steamos-readonly disable
-```
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/uninstall.png?raw=true)
 
-Then
-
-```bash
-sudo steamos-readonly enable
-```
