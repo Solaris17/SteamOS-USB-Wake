@@ -6,7 +6,7 @@ SERVICE_NAME="usb_wake.service"
 # /usr is not writable on SteamOS and can be replaced during image update, so lets put the service in /etc/systemd/system instead since it persists
 SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
 
-log() { printf '\033[1;34m[usb-wake-setup]\033[0m %s\n' "$*"; }
+log() { printf '\033[1;34m[USB Wake Setup]\033[0m %s\n' "$*"; }
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -20,6 +20,29 @@ need_cmd() {
 need_cmd systemctl
 need_cmd sh
 need_cmd grep
+
+# Prompt user for confirmation before proceeding, since this script will make system changes
+echo
+echo "Running this script will install a system service that modifies USB wakeup settings."
+echo
+printf 'Continue? [\033[1;32mY\033[0m/n] '
+read -r reply
+echo
+# Handle user input (default to yes if they just press enter)
+case "$reply" in
+  ""|[yY]|[yY][eE][sS])
+    ;;
+  [nN]|[nN][oO])
+    log "Aborted by user."
+    echo
+    exit 0
+    ;;
+  *)
+    log "Invalid input. Aborted."
+    echo
+    exit 1
+    ;;
+esac
 
 # Detect SteamOS readonly mode (if the command exists)
 READONLY_TOOL=""
@@ -38,7 +61,7 @@ cleanup() {
   # If we disabled readonly, put it back
   if [[ "${readonly_was_enabled}" == "true" && -n "${READONLY_TOOL}" ]]; then
     echo
-    log "Re-enabling SteamOS readonly..."
+    log "Re-enabling SteamOS read-only file system..."
     echo
     "${READONLY_TOOL}" enable || true
   fi
@@ -47,22 +70,23 @@ trap cleanup EXIT
 
 if [[ "${readonly_was_enabled}" == "true" && -n "${READONLY_TOOL}" ]]; then
   echo
-  log "SteamOS readonly is ENABLED; disabling temporarily..."
+  log $'SteamOS read-only file system is \033[1;33mENABLED\033[0m; disabling temporarily...'
   echo
   "${READONLY_TOOL}" disable
 else
-echo
-  log "SteamOS readonly appears disabled (or steamos-readonly not present)."
-echo
+  echo
+  log $'SteamOS read-only file system appears \033[1;33mDISABLED\033[0m.'
+  echo
 fi
 
 # We enable all root hubs to do it because some USB devices like controllers have different id values based on state (like sleep) so udevs are ineffective
 echo
-log "Writing ${SERVICE_PATH}..."
+log "Writing USB service to: ${SERVICE_PATH}..."
 echo
 cat > "${SERVICE_PATH}" <<'EOF'
 [Unit]
 Description=Enables wakeup for all USB root hubs
+Documentation=https://github.com/Solaris17/SteamOS-USB-Wake
 
 [Service]
 Type=oneshot
@@ -75,8 +99,9 @@ EOF
 chmod 0644 "${SERVICE_PATH}"
 chown root:root "${SERVICE_PATH}"
 
+# reload systemd to recognize the new service, then enable and start it
 echo
-log "Reloading systemd..."
+log "Refreshing system service config..."
 echo
 systemctl daemon-reload
 
@@ -86,7 +111,7 @@ echo
 systemctl enable --now "${SERVICE_NAME}"
 
 echo
-log "Status:"
+log "Service Status:"
 echo
 systemctl --no-pager --full status "${SERVICE_NAME}" || true
 
@@ -96,5 +121,6 @@ echo
 grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
 
 echo
-log "Done."
+log "All Done!"
+echo
 echo

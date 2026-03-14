@@ -84,9 +84,13 @@ After the machine goes to sleep simply wake the controller.
 
 ## Utility
 
-During script execution the various stages will print out.
+During script execution the various stages will print out after a brief confirmation prompt.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/image.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/yes-letter.png?raw=true)
+
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/yes-enter.png?raw=true)
+
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/no.png?raw=true)
 
 
 ## Removal
