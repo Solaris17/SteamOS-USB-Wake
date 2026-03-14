@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Variables
 # Set service name and path
 SERVICE_NAME="usb_wake.service"
 # /usr is not writable on SteamOS and can be replaced during image update, so lets put the service in /etc/systemd/system instead since it persists
 SERVICE_PATH="/etc/systemd/system/${SERVICE_NAME}"
+# Lets backup the currently connected USB devices wakeup settings before we change them, so we can restore them if needed
+BACKUP_PATH="/etc/systemd/system/usb_wake-$(date +%Y%m%d-%H%M%S).backup"
 
+# Simple logging function with consistent prefix and color
 log() { printf '\033[1;34m[USB Wake Setup]\033[0m %s\n' "$*"; }
 
+# Check for required commands and exit with error if not found
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo
@@ -21,9 +26,100 @@ need_cmd systemctl
 need_cmd sh
 need_cmd grep
 
+# Begin Functions
+# Capture flags passed to the script
+usage() {
+  cat <<EOF
+Usage:
+  $0
+  $0 --restore
+EOF
+}
+
+# Handle command line arguments
+RESTORE_PATH=""
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    --restore)
+      if [[ $# -ne 1 ]]; then
+        usage
+        exit 1
+      fi
+      RESTORE_PATH="__SELECT__"
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+fi
+
+# Function to prompt user to select a backup file to restore from
+select_restore_file() {
+  local backup_files=()
+  local selection=""
+  local index=1
+  local file=""
+
+  mapfile -t backup_files < <(compgen -G "/etc/systemd/system/usb_wake-*.backup" || true)
+# Check if any backup files were found
+  if [[ ${#backup_files[@]} -eq 0 ]]; then
+    echo
+    log "No backup files found in /etc/systemd/system."
+    echo
+    exit 1
+  fi
+# Display available backup files
+  echo
+  log "Available backup files:"
+  echo
+  for file in "${backup_files[@]}"; do
+    printf '  %d. %s\n' "${index}" "${file}"
+    index=$((index + 1))
+  done
+  echo
+# Prompt user to select a backup file
+  while true; do
+    printf 'Select backup to restore [1-%d, q to quit]: ' "${#backup_files[@]}"
+    read -r selection
+
+    case "${selection}" in
+      [qQ])
+        echo
+        log "Aborted by user."
+        echo
+        exit 0
+        ;;
+    esac
+# Validate selection
+    if [[ "${selection}" =~ ^[0-9]+$ ]] && (( selection >= 1 && selection <= ${#backup_files[@]} )); then
+      RESTORE_PATH="${backup_files[selection - 1]}"
+      echo
+      return
+    fi
+
+    echo
+    log "Invalid selection."
+    echo
+  done
+}
+
+if [[ "${RESTORE_PATH}" == "__SELECT__" ]]; then
+  select_restore_file
+fi
+
 # Prompt user for confirmation before proceeding, since this script will make system changes
 echo
-echo "Running this script will install a system service that modifies USB wakeup settings."
+if [[ -n "${RESTORE_PATH}" ]]; then
+  echo "Running this script will restore USB wakeup settings from: ${RESTORE_PATH}"
+else
+  echo "Running this script will install a system service that modifies USB wakeup settings."
+  echo "Use --help for more information."
+fi
 echo
 printf 'Continue? [\033[1;32mY\033[0m/n] '
 read -r reply
@@ -79,6 +175,23 @@ else
   echo
 fi
 
+# If the user passed the --restore flag, we skip the installation steps and just restore the settings from the selected backup file
+if [[ -n "${RESTORE_PATH}" ]]; then
+  log "Restoring USB wakeup settings from: ${RESTORE_PATH}..."
+  while IFS=: read -r path state; do
+    [[ -n "${path}" && -n "${state}" ]] || continue
+    printf '%s' "${state}" > "${path}"
+  done < "${RESTORE_PATH}"
+  echo
+  log "Quick check (showing restored wakeup flags):"
+  echo
+  grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
+  echo
+  log "Restore complete."
+  echo
+  exit 0
+fi
+
 # We enable all root hubs to do it because some USB devices like controllers have different id values based on state (like sleep) so udevs are ineffective
 echo
 log "Writing USB service to: ${SERVICE_PATH}..."
@@ -99,11 +212,17 @@ EOF
 chmod 0644 "${SERVICE_PATH}"
 chown root:root "${SERVICE_PATH}"
 
-# reload systemd to recognize the new service, then enable and start it
+# Reload systemd to recognize the new service, then enable and start it
 echo
 log "Refreshing system service config..."
 echo
 systemctl daemon-reload
+
+# Backup the current USB root hub settings during installation
+echo
+log "Backing up current USB wakeup settings to: ${BACKUP_PATH}..."
+grep -H . /sys/bus/usb/devices/usb*/power/wakeup > "${BACKUP_PATH}" 2>/dev/null || true
+echo
 
 echo
 log "Enabling and starting ${SERVICE_NAME}..."
