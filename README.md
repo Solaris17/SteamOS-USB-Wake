@@ -69,7 +69,7 @@ sudo ./usb-wake.sh
 
 The script will output its status as it completes.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/beta/pics/install.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/install.png?raw=true)
 
 After the script runs and installs the service you remove the password using the following:
 
@@ -104,22 +104,22 @@ Usage:
   /home/tech/Downloads/usb-wake.sh --uninstall
 ```
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/beta/pics/help.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/help.png?raw=true)
 
 
 Additionally; user inputs are safeguarded for mistypes, preventing accidental usage.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/beta/pics/invalid.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/invalid.png?raw=true)
 
 ## Restoring
 
 Using the ```--restore``` flag allows you to temporarily restore USB hub settings from an automatic backup.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/beta/pics/restore.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/restore.png?raw=true)
 
 ## Uninstalling
 
 Using the ```--uninstall``` flag allows you to remove the service and optionally restore from a configuration backup.
 
-![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/beta/pics/uninstall.png?raw=true)
+![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/uninstall.png?raw=true)
 
