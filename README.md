@@ -85,7 +85,7 @@ After the machine goes to sleep simply wake the controller.
 ## Features
 
 - Installs service that runs once each boot enabling currently connected usb hubs to wake the system
-- Automatically backs up the current USB hub configuration for restoration later
+- Automatically backs up the current USB hub configuration during installation for restoration later
 - Includes restoration feature to restore backups
 - Includes uninstall feature to remove the service
 
@@ -99,9 +99,9 @@ Use ```--help``` to open the menu.
 
 ```bash
 Usage:
-  /home/tech/Downloads/usb-wake.sh
-  /home/tech/Downloads/usb-wake.sh --restore
-  /home/tech/Downloads/usb-wake.sh --uninstall
+  ./usb-wake.sh
+  ./usb-wake.sh --restore
+  ./usb-wake.sh --uninstall
 ```
 
 ![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/help.png?raw=true)
@@ -113,7 +113,7 @@ Additionally; user inputs are safeguarded for mistypes, preventing accidental us
 
 ## Restoring
 
-Using the ```--restore``` flag allows you to temporarily restore USB hub settings from an automatic backup.
+Using the ```--restore``` flag allows you to temporarily restore USB hub settings from a backup.
 
 ![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/restore.png?raw=true)
 

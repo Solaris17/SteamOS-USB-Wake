@@ -313,7 +313,7 @@ echo
 systemctl --no-pager --full status "${SERVICE_NAME}" || true
 
 echo
-log "Quick check (showing current wakeup flags):"
+log "Quick check (showing new/current wakeup flags):"
 echo
 grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
 
