@@ -48,7 +48,7 @@ chmod a+x usb-wake.sh
 ```
 
 > [!TIP]
-> **A sudo password must be set and it is not be default!**
+> **A sudo password must be set and it is not by default!**
 
 SteamOS does not ship with a root password, so one must be set before you can execute things with ```sudo``` set one temporarily and then remove it again like so.
 
