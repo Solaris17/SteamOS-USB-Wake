@@ -25,6 +25,7 @@ need_cmd() {
 need_cmd systemctl
 need_cmd sh
 need_cmd grep
+need_cmd rm
 
 # Begin Functions
 # Capture flags passed to the script
@@ -33,10 +34,12 @@ usage() {
 Usage:
   $0
   $0 --restore
+  $0 --uninstall
 EOF
 }
 
 # Handle command line arguments
+MODE="install"
 RESTORE_PATH=""
 if [[ $# -gt 0 ]]; then
   case "$1" in
@@ -45,7 +48,15 @@ if [[ $# -gt 0 ]]; then
         usage
         exit 1
       fi
+      MODE="restore"
       RESTORE_PATH="__SELECT__"
+      ;;
+    --uninstall)
+      if [[ $# -ne 1 ]]; then
+        usage
+        exit 1
+      fi
+      MODE="uninstall"
       ;;
     -h|--help)
       usage
@@ -115,12 +126,19 @@ fi
 # Prompt user for confirmation before proceeding, since this script will make system changes
 echo
 if [[ -n "${RESTORE_PATH}" ]]; then
-  echo "Running this script will restore USB wakeup settings from: ${RESTORE_PATH}"
+  echo "Running this flag will restore USB wakeup settings from: ${RESTORE_PATH}"
+  echo
+  printf '\033[1;31mThis will be overwritten at next reboot if the service is still installed!\033[0m'
+  echo
+elif [[ "${MODE}" == "uninstall" ]]; then
+  echo "Running this flag will uninstall the USB wake service."
 else
   echo "Running this script will install a system service that modifies USB wakeup settings."
+  echo
   echo "Use --help for more information."
 fi
 echo
+# I should honestly just switch everything to echo -e for color
 printf 'Continue? [\033[1;32mY\033[0m/n] '
 read -r reply
 echo
@@ -154,7 +172,7 @@ if [[ -n "${READONLY_TOOL}" ]]; then
 fi
 
 cleanup() {
-  # If we disabled readonly, put it back
+  # If we disabled readonly, put it back on exit
   if [[ "${readonly_was_enabled}" == "true" && -n "${READONLY_TOOL}" ]]; then
     echo
     log "Re-enabling SteamOS read-only file system..."
@@ -177,17 +195,77 @@ fi
 
 # If the user passed the --restore flag, we skip the installation steps and just restore the settings from the selected backup file
 if [[ -n "${RESTORE_PATH}" ]]; then
+  echo
   log "Restoring USB wakeup settings from: ${RESTORE_PATH}..."
   while IFS=: read -r path state; do
     [[ -n "${path}" && -n "${state}" ]] || continue
     printf '%s' "${state}" > "${path}"
   done < "${RESTORE_PATH}"
   echo
+  echo
   log "Quick check (showing restored wakeup flags):"
   echo
   grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
   echo
-  log "Restore complete."
+  log "Restore complete!"
+  echo
+  exit 0
+fi
+
+# If the user passed the --uninstall flag, we prompt them to optionally restore from a backup before uninstalling, then we remove the service file and disable the service
+if [[ "${MODE}" == "uninstall" ]]; then
+  echo
+  printf 'Restore USB wakeup settings from a backup before uninstalling? [\033[1;32mY\033[0m/n] '
+  read -r restore_reply
+  echo
+
+  case "$restore_reply" in
+    ""|[yY]|[yY][eE][sS])
+      RESTORE_PATH="__SELECT__"
+      select_restore_file
+      echo
+      log "Restoring USB wakeup settings from: ${RESTORE_PATH}..."
+      while IFS=: read -r path state; do
+        [[ -n "${path}" && -n "${state}" ]] || continue
+        printf '%s' "${state}" > "${path}"
+      done < "${RESTORE_PATH}"
+      echo
+      echo
+      log "Quick check (showing restored wakeup flags):"
+      echo
+      echo
+      grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
+      echo
+      ;;
+    [nN]|[nN][oO])
+      ;;
+    *)
+      log "Invalid input. Aborted."
+      echo
+      exit 1
+      ;;
+  esac
+
+  echo
+  log "Stopping and disabling ${SERVICE_NAME}..."
+  echo
+  echo
+  systemctl disable --now "${SERVICE_NAME}" || true
+
+  echo
+  echo
+  log "Removing service file: ${SERVICE_PATH}..."
+  echo
+  rm -f "${SERVICE_PATH}"
+
+  # Reload systemd to apply changes
+  echo
+  log "Refreshing system service config..."
+  echo
+  systemctl daemon-reload
+
+  echo
+  log "Uninstall complete!"
   echo
   exit 0
 fi
