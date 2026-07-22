@@ -199,13 +199,16 @@ if [[ -n "${RESTORE_PATH}" ]]; then
   log "Restoring USB wakeup settings from: ${RESTORE_PATH}..."
   while IFS=: read -r path state; do
     [[ -n "${path}" && -n "${state}" ]] || continue
+    # USB topology can change after installation, so skip backup entries
+    # whose sysfs paths are no longer present or writable.
+    [[ -w "${path}" ]] || continue
     printf '%s' "${state}" > "${path}"
   done < "${RESTORE_PATH}"
   echo
   echo
   log "Quick check (showing restored wakeup flags):"
   echo
-  grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
+  grep -H . /sys/bus/usb/devices/*/power/wakeup 2>/dev/null || true
   echo
   log "Restore complete!"
   echo
@@ -227,6 +230,9 @@ if [[ "${MODE}" == "uninstall" ]]; then
       log "Restoring USB wakeup settings from: ${RESTORE_PATH}..."
       while IFS=: read -r path state; do
         [[ -n "${path}" && -n "${state}" ]] || continue
+        # USB topology can change after installation, so skip backup entries
+        # whose sysfs paths are no longer present or writable.
+        [[ -w "${path}" ]] || continue
         printf '%s' "${state}" > "${path}"
       done < "${RESTORE_PATH}"
       echo
@@ -234,7 +240,7 @@ if [[ "${MODE}" == "uninstall" ]]; then
       log "Quick check (showing restored wakeup flags):"
       echo
       echo
-      grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
+      grep -H . /sys/bus/usb/devices/*/power/wakeup 2>/dev/null || true
       echo
       ;;
     [nN]|[nN][oO])
@@ -270,18 +276,22 @@ if [[ "${MODE}" == "uninstall" ]]; then
   exit 0
 fi
 
-# We enable all root hubs to do it because some USB devices like controllers have different id values based on state (like sleep) so udevs are ineffective
+# Enable wake for every currently exposed USB device with a writable
+# power/wakeup setting. This includes downstream USB hubs, which may be
+# required to propagate wake events from connected controllers or receivers.
+# Wake authorization is not directional, so some disconnects, shutdowns,
+# timeouts, or re-enumeration events may also wake the system.
 echo
 log "Writing USB service to: ${SERVICE_PATH}..."
 echo
 cat > "${SERVICE_PATH}" <<'EOF'
 [Unit]
-Description=Enables wakeup for all USB root hubs
+Description=Enables wakeup for USB devices with writable wake controls
 Documentation=https://github.com/Solaris17/SteamOS-USB-Wake
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c 'for device in /sys/bus/usb/devices/usb*; do echo enabled > "$device"/power/wakeup; done'
+ExecStart=/bin/sh -c 'for wake in /sys/bus/usb/devices/*/power/wakeup; do if [ -w "$wake" ]; then echo enabled > "$wake"; fi; done'
 
 [Install]
 WantedBy=multi-user.target
@@ -296,10 +306,10 @@ log "Refreshing system service config..."
 echo
 systemctl daemon-reload
 
-# Backup the current USB root hub settings during installation
+# Back up all currently exposed USB wakeup settings before the service changes them
 echo
 log "Backing up current USB wakeup settings to: ${BACKUP_PATH}..."
-grep -H . /sys/bus/usb/devices/usb*/power/wakeup > "${BACKUP_PATH}" 2>/dev/null || true
+grep -H . /sys/bus/usb/devices/*/power/wakeup > "${BACKUP_PATH}" 2>/dev/null || true
 echo
 
 echo
@@ -315,7 +325,7 @@ systemctl --no-pager --full status "${SERVICE_NAME}" || true
 echo
 log "Quick check (showing new/current wakeup flags):"
 echo
-grep -H . /sys/bus/usb/devices/usb*/power/wakeup 2>/dev/null || true
+grep -H . /sys/bus/usb/devices/*/power/wakeup 2>/dev/null || true
 
 echo
 log "All Done!"
