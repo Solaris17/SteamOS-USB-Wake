@@ -5,16 +5,21 @@
 
 > [!TIP]
 > **Please do not request install help in this repo!**
-
 ## About
 
-This script installs and activates a service that allows USB devices on any USB root hub to wake SteamOS from sleep.
+This script installs and activates a service that enables Linux USB wake controls for currently exposed USB devices and hubs with a writable ```power/wakeup``` setting.
 
-[SteamOS](https://help.steampowered.com/en/faqs/view/65B4-2AA3-5F37-4227) is installed on many DIY PCs by enthusiasts to make faux steam machines.
+[SteamOS](https://help.steampowered.com/en/faqs/view/1B71-EDF2-EB6D-2BB3) is installed by enthusiasts on DIY PCs to create console-like Steam machines.
 
-However; given the Steam Machine and Steam Decks nature, and OSs in general, these DIY PCs cannot be woken by most controllers.
+Most controllers do not send the same remote-wake event as keyboards and mice. Some controllers and wireless receivers instead appear, disappear, reconnect, or change USB identity as their state changes. Enabling wake on the relevant USB paths allows the USB hardware and Linux kernel to use those changes as wake sources.
 
-To get around this, this service detects changes on the USB root hubs (USB device controllers) and if a change is detected (like a controller waking up (state change), or randomly appearing on the bus (bluetooth)) it triggers the wake command in the OS (like you pushed the power button.).
+## Wake behavior and limitations
+
+The service runs once when installed and once during each boot. It does not continuously monitor controller input or decide whether a USB state change represents a device powering on or powering off. After the wake controls are enabled, wake handling is performed by the USB hardware and Linux kernel.
+
+Wake authorization is not directional. Depending on the device, receiver, and USB topology, connection, disconnection, re-enumeration, or USB ID changes may wake the system.
+
+For example, an 8BitDo Ultimate 2C receiver was observed changing its USB-visible state when the controller powered on or off. This allowed controller power-on to wake the system, but controller shutdown or automatic timeout could also wake it. Wireless mouse and keyboard receivers may behave differently because many remain connected to the USB bus when the peripheral itself is powered off.
 
 -----
 
@@ -84,8 +89,8 @@ After the machine goes to sleep simply wake the controller.
 
 ## Features
 
-- Installs service that runs once each boot enabling currently connected usb hubs to wake the system
-- Automatically backs up the current USB hub configuration during installation for restoration later
+- Installs a service that runs once during each boot and enables currently exposed USB devices and hubs with writable ```power/wakeup``` controls
+- Automatically backs up the currently exposed USB wake settings during installation for restoration later
 - Includes restoration feature to restore backups
 - Includes uninstall feature to remove the service
 
@@ -113,7 +118,7 @@ Additionally; user inputs are safeguarded for mistypes, preventing accidental us
 
 ## Restoring
 
-Using the ```--restore``` flag allows you to temporarily restore USB hub settings from a backup.
+Using the ```--restore``` flag allows you to temporarily restore USB wake settings from a backup. If the USB topology has changed since the backup was created, entries whose sysfs paths are no longer present or writable are skipped.
 
 ![alt text](https://github.com/Solaris17/SteamOS-USB-Wake/blob/main/pics/restore.png?raw=true)
 
