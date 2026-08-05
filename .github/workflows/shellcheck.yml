@@ -1,0 +1,18 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        run: shellcheck usb-wake.sh
+
+      - name: Bash syntax check
+        run: bash -n usb-wake.sh
