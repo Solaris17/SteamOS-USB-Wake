@@ -69,6 +69,15 @@ if [[ $# -gt 0 ]]; then
   esac
 fi
 
+# Install, restore, and uninstall all write to /etc and /sys, so require root
+# up front (after flag parsing so --help still works unprivileged)
+if [[ ${EUID} -ne 0 ]]; then
+  echo
+  echo "ERROR: this script must be run as root: sudo $0" >&2
+  echo
+  exit 1
+fi
+
 # Function to prompt user to select a backup file to restore from
 select_restore_file() {
   local backup_files=()
